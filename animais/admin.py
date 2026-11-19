@@ -19,16 +19,19 @@ class AnimalAdmin(admin.ModelAdmin):
         'especie',
         'raca',
         'porte',
+        'localizacao',
         'status',
     )
 
     list_filter = (
         'especie',
         'porte',
+        'localizacao',
         'status',
+        'origem',
     )
 
-    search_fields = ('nome', 'raca')
+    search_fields = ('nome', 'raca', 'especie_outra')
 
 
 # CADASTRO DE VACINAS
@@ -37,10 +40,13 @@ class AnimalAdmin(admin.ModelAdmin):
 class VacinaAdmin(admin.ModelAdmin):
     list_display = (
         'nome',
+        'tipo',
         'animal',
         'data_aplicacao',
         'proxima_dose',
     )
+
+    list_filter = ('tipo',)
 
     search_fields = (
         'nome',

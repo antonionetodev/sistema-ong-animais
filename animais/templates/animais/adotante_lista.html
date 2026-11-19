@@ -1,0 +1,33 @@
+{% extends 'painel/base.html' %}
+{% block titulo %}Adotantes{% endblock %}
+{% block conteudo %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Adotantes</h1>
+    <a href="{% url 'adotante_novo' %}" class="btn btn-success">+ Novo adotante</a>
+</div>
+<form method="get" class="d-flex gap-2 mb-3" style="max-width: 480px;">
+    <input type="text" name="q" value="{{ busca }}" class="form-control" placeholder="Buscar por nome, telefone ou e-mail">
+    <button class="btn btn-success">Buscar</button>
+</form>
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light"><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Adoções</th><th></th></tr></thead>
+            <tbody>
+            {% for a in adotantes %}
+                <tr>
+                    <td>{{ a.nome }}</td><td>{{ a.telefone }}</td><td>{{ a.email|default:'—' }}</td>
+                    <td>{{ a.solicitacoes_adocao.count }}</td>
+                    <td class="text-end text-nowrap">
+                        <a href="{% url 'adocao_nova' %}?adotante={{ a.pk }}" class="btn btn-sm btn-outline-primary">Registrar adoção</a>
+                        <a href="{% url 'adotante_editar' a.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="text-muted">Nenhum adotante cadastrado.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

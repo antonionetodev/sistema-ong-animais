@@ -8,29 +8,96 @@ class Animal(models.Model):
     ESPECIES = [
         ('Cachorro', 'Cachorro'),
         ('Gato', 'Gato'),
+        ('Outro', 'Outro'),
     ]
 
+    SEXOS = [
+        ('Macho', 'Macho'),
+        ('Fêmea', 'Fêmea'),
+        ('Não identificado', 'Não identificado'),
+    ]
+
+    PORTES = [
+        ('Pequeno', 'Pequeno'),
+        ('Médio', 'Médio'),
+        ('Grande', 'Grande'),
+    ]
+
+    # Onde o animal está (separado da situação dele)
+    LOCALIZACOES = [
+        ('Abrigo 1', 'Abrigo 1'),
+        ('Abrigo 2', 'Abrigo 2'),
+        ('Abrigo 3', 'Abrigo 3'),
+        ('Lar temporário', 'Lar temporário'),
+        ('Internado', 'Internado'),
+    ]
+
+    # Situação do animal
     STATUS = [
-        ('Disponível', 'Disponível'),
-        ('Adotado', 'Adotado'),
         ('Em tratamento', 'Em tratamento'),
+        ('Disponível', 'Disponível'),
+        ('Não disponível', 'Não disponível'),
+        ('Adotado', 'Adotado'),
+        ('Falecido', 'Falecido'),
     ]
 
-    nome = models.CharField(max_length=100)
-    especie = models.CharField(max_length=20, choices=ESPECIES)
-    raca = models.CharField(max_length=100, blank=True)
-    idade = models.PositiveIntegerField(null=True, blank=True)
-    sexo = models.CharField(max_length=10)
-    porte = models.CharField(max_length=20)
-    descricao = models.TextField(blank=True)
+    ORIGENS = [
+        ('Maus-tratos', 'Maus-tratos'),
+        ('Abandono', 'Abandono'),
+        ('Atropelamento', 'Atropelamento'),
+        ('Outro', 'Outro'),
+    ]
 
+    nome = models.CharField('Nome', max_length=100)
+    especie = models.CharField('Espécie', max_length=20, choices=ESPECIES)
+    especie_outra = models.CharField(
+        'Qual espécie?', max_length=60, blank=True,
+        help_text='Preencha quando a espécie for "Outro" (ex.: macaco, coruja, cavalo)'
+    )
+    raca = models.CharField('Raça', max_length=100, blank=True)
+    idade = models.PositiveIntegerField(
+        'Idade aproximada (anos)', null=True, blank=True,
+        help_text='Use 0 para filhotes com menos de 1 ano'
+    )
+    sexo = models.CharField('Sexo', max_length=20, choices=SEXOS)
+    porte = models.CharField('Porte', max_length=20, choices=PORTES)
+    pelagem = models.CharField(
+        'Pelagem', max_length=100, blank=True,
+        help_text='Cor e tipo de pelo/penas (ex.: caramelo, curto)'
+    )
+
+    localizacao = models.CharField(
+        'Localização', max_length=30, choices=LOCALIZACOES, default='Abrigo 1'
+    )
     status = models.CharField(
+        'Situação',
         max_length=30,
         choices=STATUS,
         default='Disponível'
     )
+    motivo_indisponivel = models.CharField(
+        'Motivo (não disponível)', max_length=200, blank=True,
+        help_text='Obrigatório quando a situação for "Não disponível"'
+    )
+
+    origem = models.CharField(
+        'Origem', max_length=30, choices=ORIGENS, blank=True
+    )
+    data_entrada = models.DateField(
+        'Data de entrada na ONG', null=True, blank=True
+    )
+    temperamento = models.CharField(
+        'Temperamento', max_length=200, blank=True,
+        help_text='Ex.: dócil, medroso, não se dá bem com gatos'
+    )
+    info_clinica = models.TextField(
+        'Informações clínicas', blank=True,
+        help_text='Doenças, castração, medicações, alergias...'
+    )
+    descricao = models.TextField('Observações', blank=True)
 
     foto = models.ImageField(
+        'Foto',
         upload_to='animais/',
         blank=True,
         null=True
@@ -38,20 +105,69 @@ class Animal(models.Model):
 
     data_cadastro = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['nome']
+        verbose_name = 'Animal'
+        verbose_name_plural = 'Animais'
+
+    def clean(self):
+        super().clean()
+        erros = {}
+        if self.especie == 'Outro' and not self.especie_outra.strip():
+            erros['especie_outra'] = 'Informe qual é a espécie.'
+        if self.status == 'Não disponível' and not self.motivo_indisponivel.strip():
+            erros['motivo_indisponivel'] = 'Informe o motivo de o animal não estar disponível.'
+        if erros:
+            raise ValidationError(erros)
+
+    @property
+    def especie_exibicao(self):
+        if self.especie == 'Outro' and self.especie_outra:
+            return self.especie_outra.capitalize()
+        return self.especie
+
+    @property
+    def cor_status(self):
+        return {
+            'Disponível': 'success',
+            'Em tratamento': 'warning',
+            'Não disponível': 'secondary',
+            'Adotado': 'primary',
+            'Falecido': 'dark',
+        }.get(self.status, 'light')
+
     def __str__(self):
         return self.nome
 
 
 class Vacina(models.Model):
+    """Registro de doses: vacinas, vermífugos e antiparasitários."""
+
+    TIPOS = [
+        ('Vacina', 'Vacina'),
+        ('Vermífugo', 'Vermífugo'),
+        ('Antiparasitário', 'Antiparasitário'),
+    ]
+
     animal = models.ForeignKey(
         Animal,
         on_delete=models.CASCADE,
         related_name='vacinas'
     )
 
-    nome = models.CharField(max_length=100)
-    data_aplicacao = models.DateField()
-    proxima_dose = models.DateField(null=True, blank=True)
+    tipo = models.CharField('Tipo', max_length=20, choices=TIPOS, default='Vacina')
+    nome = models.CharField(
+        'Nome/produto', max_length=100,
+        help_text='Ex.: V10, Antirrábica, Drontal, Bravecto'
+    )
+    data_aplicacao = models.DateField('Data de aplicação')
+    proxima_dose = models.DateField('Próxima dose', null=True, blank=True)
+    observacao = models.CharField('Observação', max_length=200, blank=True)
+
+    class Meta:
+        ordering = ['-data_aplicacao']
+        verbose_name = 'Vacina/vermífugo/antiparasitário'
+        verbose_name_plural = 'Vacinas, vermífugos e antiparasitários'
 
     def __str__(self):
         return f'{self.nome} - {self.animal.nome}'
@@ -64,8 +180,19 @@ class Anexo(models.Model):
         related_name='anexos'
     )
 
-    arquivo = models.FileField(upload_to='anexos/')
-    descricao = models.CharField(max_length=200, blank=True)
+    arquivo = models.FileField('Arquivo', upload_to='anexos/')
+    descricao = models.CharField(
+        'Descrição', max_length=200, blank=True,
+        help_text='Ex.: exame de sangue, receita, termo de adoção'
+    )
+    data_envio = models.DateTimeField('Enviado em', auto_now_add=True, null=True)
+
+    class Meta:
+        ordering = ['-id']
+
+    @property
+    def nome_arquivo(self):
+        return self.arquivo.name.rsplit('/', 1)[-1]
 
     def __str__(self):
         return f'Anexo - {self.animal.nome}'

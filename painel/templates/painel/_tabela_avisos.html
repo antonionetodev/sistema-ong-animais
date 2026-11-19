@@ -6,9 +6,9 @@
     <tbody>
     {% for v in lista %}
         <tr>
-            <td><strong>{{ v.animal.nome }}</strong></td>
-            <td>{{ v.animal.especie }}</td>
-            <td>{{ v.nome }}</td>
+            <td><a href="{% url 'detalhe_animal' v.animal_id %}"><strong>{{ v.animal.nome }}</strong></a><br><small class="text-muted">{{ v.animal.localizacao }}</small></td>
+            <td>{{ v.animal.especie_exibicao }}</td>
+            <td><span class="badge text-bg-light border">{{ v.tipo }}</span> {{ v.nome }}</td>
             <td>{{ v.data_aplicacao|date:'d/m/Y' }}</td>
             <td>{{ v.proxima_dose|date:'d/m/Y' }}</td>
             <td>

@@ -1,0 +1,38 @@
+{% extends 'painel/base.html' %}
+{% block titulo %}Adoções{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Adoções</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'adotante_lista' %}" class="btn btn-outline-success">Adotantes</a>
+        <a href="{% url 'adocao_nova' %}" class="btn btn-success">+ Registrar adoção</a>
+    </div>
+</div>
+<div class="btn-group mb-3 flex-wrap">
+    <a href="{% url 'adocao_lista' %}" class="btn btn-sm {% if not status_atual %}btn-success{% else %}btn-outline-success{% endif %}">Todas</a>
+    {% for v, r in opcoes_status %}
+    <a href="?status={{ v|urlencode }}" class="btn btn-sm {% if status_atual == v %}btn-success{% else %}btn-outline-success{% endif %}">{{ r }}</a>
+    {% endfor %}
+</div>
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light"><tr><th>Animal</th><th>Adotante</th><th>Telefone</th><th>Data</th><th>Situação</th><th></th></tr></thead>
+            <tbody>
+            {% for ad in adocoes %}
+                <tr>
+                    <td><a href="{% url 'detalhe_animal' ad.animal_id %}">{{ ad.animal.nome }}</a></td>
+                    <td>{{ ad.adotante.nome }}</td>
+                    <td>{{ ad.adotante.telefone }}</td>
+                    <td>{{ ad.data_solicitacao|date:'d/m/Y' }}{% if ad.data_aprovacao %}<br><small class="text-muted">aprovada {{ ad.data_aprovacao|date:'d/m/Y' }}</small>{% endif %}</td>
+                    <td><span class="badge {% if ad.status == 'Aprovada' %}text-bg-success{% elif ad.status == 'Pendente' %}text-bg-warning{% else %}text-bg-secondary{% endif %}">{{ ad.status }}</span></td>
+                    <td class="text-end"><a href="{% url 'adocao_editar' ad.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-muted">Nenhuma adoção registrada.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

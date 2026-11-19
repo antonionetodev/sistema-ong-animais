@@ -1,0 +1,15 @@
+{% extends 'painel/base.html' %}
+{% block titulo %}Adoção{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-2">{% if adocao %}Editar adoção{% else %}Registrar adoção{% endif %}</h1>
+<p class="text-muted">Ao marcar como <strong>Aprovada</strong>, o animal passa automaticamente para a situação "Adotado".
+{% if not adocao %}O adotante ainda não está cadastrado? <a href="{% url 'adotante_novo' %}?next=adocao">Cadastre aqui</a>.{% endif %}</p>
+<form method="post" class="card card-body shadow-sm">
+    {% csrf_token %}
+    {% include 'animais/_campos.html' %}
+    <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-success">Salvar</button>
+        <a href="{% url 'adocao_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

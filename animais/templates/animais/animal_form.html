@@ -1,0 +1,26 @@
+{% extends 'painel/base.html' %}
+{% block titulo %}{% if animal %}Editar {{ animal.nome }}{% else %}Cadastrar animal{% endif %}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">{% if animal %}Editar {{ animal.nome }}{% else %}Cadastrar animal{% endif %}</h1>
+<form method="post" enctype="multipart/form-data" class="card card-body shadow-sm">
+    {% csrf_token %}
+    {% include 'animais/_campos.html' %}
+    <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-success">Salvar</button>
+        <a href="{% if animal %}{% url 'detalhe_animal' animal.id %}{% else %}{% url 'lista_animais' %}{% endif %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+<script>
+// Mostra "Qual espécie?" só quando a espécie for Outro, e o motivo só quando não disponível.
+(function () {
+    function alternar(selectId, valor, campoId) {
+        var sel = document.getElementById(selectId), campo = document.getElementById(campoId);
+        if (!sel || !campo) return;
+        var f = function () { campo.style.display = sel.value === valor ? '' : 'none'; };
+        sel.addEventListener('change', f); f();
+    }
+    alternar('id_especie', 'Outro', 'campo-especie_outra');
+    alternar('id_status', 'Não disponível', 'campo-motivo_indisponivel');
+})();
+</script>
+{% endblock %}

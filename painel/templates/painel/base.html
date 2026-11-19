@@ -21,7 +21,8 @@
         <div class="collapse navbar-collapse" id="menu">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">Painel</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'lista_animais' %}">Animais</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name in 'lista_animais detalhe_animal animal_novo animal_editar animal_excluir vacina_nova vacina_editar vacina_excluir anexo_novo anexo_excluir' %}active{% endif %}" href="{% url 'lista_animais' %}">Animais</a></li>
+                <li class="nav-item"><a class="nav-link {% if 'adocao' in request.resolver_match.url_name or 'adotante' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'adocao_lista' %}">Adoções</a></li>
                 <li class="nav-item"><a class="nav-link {% if 'atendimento' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'atendimento_lista' %}">Atendimentos</a></li>
                 <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'avisos' %}active{% endif %}" href="{% url 'avisos' %}">Avisos</a></li>
             </ul>

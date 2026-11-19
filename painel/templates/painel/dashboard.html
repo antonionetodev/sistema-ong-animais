@@ -59,9 +59,27 @@
     </div>
     <div class="col-12 col-lg-4">
         <div class="card shadow-sm h-100"><div class="card-body">
-            <div class="card-rotulo mb-2">Animais por espécie</div>
+            <div class="card-rotulo">Adoções pendentes</div>
+            <div class="card-numero">{{ adocoes_pendentes }}</div>
+            <small class="text-muted"><a href="{% url 'adocao_lista' %}?status=Pendente">Ver adoções</a> · {{ nao_disponiveis }} não disponível(is) · {{ falecidos }} falecido(s)</small>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100"><div class="card-body">
+            <div class="card-rotulo mb-2">Onde estão os animais (sob cuidado)</div>
+            {% for l in por_localizacao %}
+            <a class="d-flex justify-content-between text-decoration-none text-body" href="{% url 'lista_animais' %}?localizacao={{ l.localizacao|urlencode }}"><span>📍 {{ l.localizacao }}</span><strong>{{ l.total }}</strong></a>
+            {% empty %}<small class="text-muted">Nenhum animal sob cuidado.</small>{% endfor %}
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100"><div class="card-body">
+            <div class="card-rotulo mb-2">Animais por espécie (sob cuidado)</div>
             {% for e in por_especie %}
-            <div class="d-flex justify-content-between"><span>{{ e.especie }}</span><strong>{{ e.total }}</strong></div>
+            <div class="d-flex justify-content-between"><span>{% if e.especie == 'Outro' and e.especie_outra %}{{ e.especie_outra|capfirst }}{% else %}{{ e.especie }}{% endif %}</span><strong>{{ e.total }}</strong></div>
             {% empty %}<small class="text-muted">Nenhum animal cadastrado.</small>{% endfor %}
         </div></div>
     </div>
@@ -88,12 +106,15 @@
     </div>
     <div class="col-lg-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header bg-white"><strong>Últimos animais cadastrados</strong></div>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Últimos animais cadastrados</strong>
+                <a href="{% url 'animal_novo' %}" class="btn btn-sm btn-success">+ Novo</a>
+            </div>
             <ul class="list-group list-group-flush">
                 {% for an in ultimos_animais %}
                 <li class="list-group-item d-flex justify-content-between">
-                    <span>{{ an.nome }} <small class="text-muted">({{ an.especie }})</small></span>
-                    <span class="badge bg-light text-dark border">{{ an.status }}</span>
+                    <a href="{% url 'detalhe_animal' an.id %}" class="text-decoration-none">{{ an.nome }}</a> <small class="text-muted">({{ an.especie_exibicao }} · {{ an.localizacao }})</small>
+                    <span class="badge text-bg-{{ an.cor_status }}">{{ an.status }}</span>
                 </li>
                 {% empty %}
                 <li class="list-group-item text-muted">Nenhum animal cadastrado.</li>

@@ -4,7 +4,7 @@ from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from animais.models import Animal
+from animais.models import Animal, SolicitacaoAdocao
 
 from .avisos import calcular_avisos
 from .forms import AtendimentoForm
@@ -17,17 +17,26 @@ def dashboard(request):
     animais = Animal.objects.all()
 
     por_status = animais.values('status').annotate(total=Count('id')).order_by('-total')
-    por_especie = animais.values('especie').annotate(total=Count('id')).order_by('-total')
+    sob_cuidado = animais.exclude(status__in=['Adotado', 'Falecido'])
+    por_especie = (
+        sob_cuidado.values('especie', 'especie_outra')
+        .annotate(total=Count('id')).order_by('-total')
+    )
+    por_localizacao = sob_cuidado.values('localizacao').annotate(total=Count('id')).order_by('localizacao')
 
     atend_mes = Atendimento.objects.filter(data__year=hoje.year, data__month=hoje.month)
     avisos = calcular_avisos()
 
     contexto = {
         'total_animais': animais.count(),
-        'no_abrigo': animais.exclude(status='Adotado').count(),
+        'no_abrigo': sob_cuidado.count(),
         'disponiveis': animais.filter(status='Disponível').count(),
         'em_tratamento': animais.filter(status='Em tratamento').count(),
         'adotados': animais.filter(status='Adotado').count(),
+        'nao_disponiveis': animais.filter(status='Não disponível').count(),
+        'falecidos': animais.filter(status='Falecido').count(),
+        'por_localizacao': por_localizacao,
+        'adocoes_pendentes': SolicitacaoAdocao.objects.filter(status='Pendente').count(),
         'por_status': por_status,
         'por_especie': por_especie,
         'atendimentos_mes': atend_mes.count(),

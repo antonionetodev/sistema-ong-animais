@@ -1,151 +1,125 @@
-
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ animal.nome }} - ONG de Animais</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-
-<div class="container py-5">
-
-    <a href="{% url 'lista_animais' %}"
-       class="btn btn-secondary mb-4">
-        Voltar para a lista
-    </a>
-
-    <div class="card shadow-sm">
-        <div class="row g-0">
-
-            <div class="col-md-5">
-                {% if animal.foto %}
-                    <img src="{{ animal.foto.url }}"
-                         class="img-fluid rounded-start w-100"
-                         style="height: 350px; object-fit: cover;"
-                         alt="{{ animal.nome }}">
-                {% else %}
-                    <div class="p-5 text-center text-muted">
-                        Sem foto disponível
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="col-md-7">
-                <div class="card-body p-4">
-
-                    <h2>{{ animal.nome }}</h2>
-                    <hr>
-
-                    <p><strong>Espécie:</strong> {{ animal.especie }}</p>
-                    <p><strong>Raça:</strong> {{ animal.raca }}</p>
-
-                    <p>
-                        <strong>Idade:</strong>
-                        {% if animal.idade is not None %}
-                            {{ animal.idade }} anos
-                        {% else %}
-                            Não informada
-                        {% endif %}
-                    </p>
-
-                    <p><strong>Sexo:</strong> {{ animal.sexo }}</p>
-                    <p><strong>Porte:</strong> {{ animal.porte }}</p>
-                    <p><strong>Situação:</strong> {{ animal.status }}</p>
-
-                    {% if animal.descricao %}
-                        <p>
-                            <strong>Descrição:</strong>
-                            {{ animal.descricao }}
-                        </p>
-                    {% endif %}
-
-                    <hr>
-
-                    <h5 class="mb-3">💉 Histórico de vacinação</h5>
-
-                    {% for vacina in animal.vacinas.all %}
-
-                        {% if forloop.first %}
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered">
-                                <thead class="table-success">
-                                    <tr>
-                                        <th>Vacina</th>
-                                        <th>Aplicação</th>
-                                        <th>Próxima dose</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        {% endif %}
-
-                                    <tr>
-                                        <td>{{ vacina.nome }}</td>
-                                        <td>{{ vacina.data_aplicacao|date:"d/m/Y" }}</td>
-                                        <td>
-                                            {% if vacina.proxima_dose %}
-                                                {{ vacina.proxima_dose|date:"d/m/Y" }}
-                                            {% else %}
-                                                Não informada
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-
-                        {% if forloop.last %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% endif %}
-
-                    {% empty %}
-                        <p class="text-muted">
-                            Nenhuma vacina cadastrada para este animal.
-                        </p>
-                    {% endfor %}
-
-                    <hr>
-
-                    <h5 class="mb-3">📎 Documentos e anexos</h5>
-
-                    <ul class="list-group">
-
-                        {% for anexo in animal.anexos.all %}
-
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>
-                                    {% if anexo.descricao %}
-                                        {{ anexo.descricao }}
-                                    {% else %}
-                                        Documento {{ forloop.counter }}
-                                    {% endif %}
-                                </span>
-
-                                <a href="{{ anexo.arquivo.url }}"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Visualizar
-                                </a>
-                            </li>
-
-                        {% empty %}
-                            <li class="list-group-item text-muted">
-                                Nenhum documento anexado para este animal.
-                            </li>
-                        {% endfor %}
-
-                    </ul>
-
-                </div>
-            </div>
-
-        </div>
+{% extends 'painel/base.html' %}
+{% block titulo %}{{ animal.nome }}{% endblock %}
+{% block conteudo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a href="{% url 'lista_animais' %}" class="btn btn-outline-secondary btn-sm">← Voltar para a lista</a>
+    <div class="d-flex gap-2">
+        {% if animal.status == 'Disponível' %}
+        <a href="{% url 'adocao_nova' %}?animal={{ animal.id }}" class="btn btn-primary btn-sm">Registrar adoção</a>
+        {% endif %}
+        <a href="{% url 'animal_editar' animal.id %}" class="btn btn-success btn-sm">Editar</a>
+        <a href="{% url 'animal_excluir' animal.id %}" class="btn btn-outline-danger btn-sm">Excluir</a>
     </div>
-
 </div>
 
-</body>
-</html>
+<div class="card shadow-sm mb-4">
+    <div class="row g-0">
+        <div class="col-md-4">
+            {% if animal.foto %}
+            <img src="{{ animal.foto.url }}" class="img-fluid rounded-start w-100" style="height: 100%; max-height: 380px; object-fit: cover;" alt="{{ animal.nome }}">
+            {% else %}
+            <div class="bg-success-subtle h-100 d-flex align-items-center justify-content-center rounded-start" style="min-height: 220px; font-size: 4rem;">🐾</div>
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h2 class="mb-0">{{ animal.nome }}</h2>
+                    <span class="badge text-bg-{{ animal.cor_status }}">{{ animal.status }}</span>
+                </div>
+                <p class="text-muted">📍 {{ animal.localizacao }}{% if animal.status == 'Não disponível' and animal.motivo_indisponivel %} · Motivo: {{ animal.motivo_indisponivel }}{% endif %}</p>
+                <div class="row small">
+                    <div class="col-sm-6">
+                        <p class="mb-1"><strong>Espécie:</strong> {{ animal.especie_exibicao }}</p>
+                        <p class="mb-1"><strong>Raça:</strong> {{ animal.raca|default:'Não informada' }}</p>
+                        <p class="mb-1"><strong>Sexo:</strong> {{ animal.sexo }}</p>
+                        <p class="mb-1"><strong>Idade aprox.:</strong>
+                            {% if animal.idade is None %}Não informada{% elif animal.idade == 0 %}Filhote (menos de 1 ano){% else %}{{ animal.idade }} ano{{ animal.idade|pluralize }}{% endif %}</p>
+                        <p class="mb-1"><strong>Porte:</strong> {{ animal.porte }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="mb-1"><strong>Pelagem:</strong> {{ animal.pelagem|default:'—' }}</p>
+                        <p class="mb-1"><strong>Origem:</strong> {{ animal.origem|default:'—' }}</p>
+                        <p class="mb-1"><strong>Entrada na ONG:</strong> {{ animal.data_entrada|date:'d/m/Y'|default:'—' }}</p>
+                        <p class="mb-1"><strong>Temperamento:</strong> {{ animal.temperamento|default:'—' }}</p>
+                    </div>
+                </div>
+                {% if animal.info_clinica %}
+                <div class="mt-3"><strong>Informações clínicas</strong><p class="mb-0" style="white-space: pre-line;">{{ animal.info_clinica }}</p></div>
+                {% endif %}
+                {% if animal.descricao %}
+                <div class="mt-3"><strong>Observações</strong><p class="mb-0" style="white-space: pre-line;">{{ animal.descricao }}</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <strong>💉 Vacinas, vermífugos e antiparasitários</strong>
+        <a href="{% url 'vacina_nova' animal.id %}" class="btn btn-sm btn-success">+ Registrar dose</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light"><tr><th>Tipo</th><th>Nome</th><th>Aplicação</th><th>Próxima dose</th><th>Obs.</th><th></th></tr></thead>
+            <tbody>
+            {% for v in animal.vacinas.all %}
+                <tr>
+                    <td><span class="badge text-bg-light border">{{ v.tipo }}</span></td>
+                    <td>{{ v.nome }}</td>
+                    <td>{{ v.data_aplicacao|date:'d/m/Y' }}</td>
+                    <td>{{ v.proxima_dose|date:'d/m/Y'|default:'—' }}</td>
+                    <td class="small text-muted">{{ v.observacao }}</td>
+                    <td class="text-end text-nowrap">
+                        <a href="{% url 'vacina_editar' v.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                        <a href="{% url 'vacina_excluir' v.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-muted">Nenhuma dose registrada.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>📎 Documentos e anexos</strong>
+                <a href="{% url 'anexo_novo' animal.id %}" class="btn btn-sm btn-success">+ Anexar</a>
+            </div>
+            <ul class="list-group list-group-flush">
+            {% for anexo in animal.anexos.all %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ anexo.descricao|default:anexo.nome_arquivo }}{% if anexo.data_envio %}<br><small class="text-muted">{{ anexo.data_envio|date:'d/m/Y' }}</small>{% endif %}</span>
+                    <span class="text-nowrap">
+                        <a href="{{ anexo.arquivo.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">Abrir</a>
+                        <a href="{% url 'anexo_excluir' anexo.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </span>
+                </li>
+            {% empty %}
+                <li class="list-group-item text-muted">Nenhum documento anexado.</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white"><strong>🏠 Histórico de adoção</strong></div>
+            <ul class="list-group list-group-flush">
+            {% for ad in adocoes %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ ad.adotante.nome }}<br><small class="text-muted">{{ ad.data_solicitacao|date:'d/m/Y' }}</small></span>
+                    <a href="{% url 'adocao_editar' ad.pk %}" class="badge text-decoration-none {% if ad.status == 'Aprovada' %}text-bg-success{% elif ad.status == 'Pendente' %}text-bg-warning{% else %}text-bg-secondary{% endif %}">{{ ad.status }}</a>
+                </li>
+            {% empty %}
+                <li class="list-group-item text-muted">Nenhuma adoção registrada.</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

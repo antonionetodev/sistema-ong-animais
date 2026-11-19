@@ -12,7 +12,7 @@ from .models import Atendimento
 
 
 def criar_animal(nome='Rex', status='Disponível'):
-    return Animal.objects.create(nome=nome, especie='Cachorro', sexo='M', porte='Médio', status=status)
+    return Animal.objects.create(nome=nome, especie='Cachorro', sexo='Macho', porte='Médio', status=status)
 
 
 class AvisosTests(TestCase):

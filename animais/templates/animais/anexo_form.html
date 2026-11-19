@@ -1,0 +1,13 @@
+{% extends 'painel/base.html' %}
+{% block titulo %}Anexar arquivo · {{ animal.nome }}{% endblock %}
+{% block conteudo %}
+<h1 class="h3 mb-4">Anexar arquivo · {{ animal.nome }}</h1>
+<form method="post" enctype="multipart/form-data" class="card card-body shadow-sm">
+    {% csrf_token %}
+    {% include 'animais/_campos.html' %}
+    <div class="mt-4 d-flex gap-2">
+        <button class="btn btn-success">Enviar</button>
+        <a href="{% url 'detalhe_animal' animal.id %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+</form>
+{% endblock %}
